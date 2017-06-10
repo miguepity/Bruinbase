@@ -55,6 +55,47 @@ class PageFile {
    */
   PageId endPid() const;
 
+  /**
+   * @return the total # of disk reads
+   */
+  static int getPageReadCount()  { return readCount; }
+  
+  /**
+   * @return the total # of disk writes
+   */
+  static int getPageWriteCount() { return writeCount; }
+
+ protected:
+  /**
+   * move the file cursor to the beginning of a page.
+   * this is an internal function not exposed to public.
+   * @param pid[IN] page to seek to
+   * @return error code. 0 if no error
+   */
+  RC seek(PageId pid) const;
+
+ private:
+  int     fd;     // file descriptor of the associated unix file
+  PageId  epid;   // (last page id + 1) of the file
+
+  //
+  // the following set of members implement LRU caching 
+  //
+  static const int CACHE = 10;
+
+  static int cacheClock; // clock tick counter for LRU policy
+
+  // the actual cache data structure
+  static struct cacheStruct {
+    int    fd;              // file id of the cached page
+    PageId pid;             // page id of the cached page
+    int    lastAccessed;    // the last time the cached page was accessed
+                            //   (lastAccessed == 0) means that the buffer is empty
+    char buffer[TAM_PAG]; // the buffer used for caching
+  } readCache[CACHE];
+
+  static int readCount;  // total # of page reads 
+  static int writeCount; // total # of page writes 
 };
   
 #endif
