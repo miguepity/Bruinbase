@@ -10,7 +10,7 @@ typedef int PageId;
 class PageFile {
  public:
 
-  static const int TAM_PAG = 1024;    // tamaño de pagina 1KB
+  static const int PAGE_SIZE = 1024;    // tamaño de pagina 1KB
 
   PageFile();
   PageFile(const std::string& filename, char mode);
@@ -81,7 +81,7 @@ class PageFile {
   //
   // the following set of members implement LRU caching 
   //
-  static const int CACHE = 10;
+  static const int CACHE_COUNT = 10;
 
   static int cacheClock; // clock tick counter for LRU policy
 
@@ -91,8 +91,8 @@ class PageFile {
     PageId pid;             // page id of the cached page
     int    lastAccessed;    // the last time the cached page was accessed
                             //   (lastAccessed == 0) means that the buffer is empty
-    char buffer[TAM_PAG]; // the buffer used for caching
-  } readCache[CACHE];
+    char buffer[PAGE_SIZE]; // the buffer used for caching
+  } readCache[CACHE_COUNT];
 
   static int readCount;  // total # of page reads 
   static int writeCount; // total # of page writes 
