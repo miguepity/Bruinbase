@@ -156,6 +156,103 @@ RC BTreeIndex::readForward(IndexCursor& cursor, int& key, RecordId& rid)
 
 RC BTreeIndex::insertarRecursivo(int llave, const RecordId& id_record, int altura, PageId id_pagina, int& pllave, PageId& p_id_pagina)
 {
-    return 0;
+    RC currRegister;
+    BTLeafNode currLeaf;
+    int sibKey;
+    PageId sibPid;
+    BTNonLeafNode nonLeaf;
+    PageId nextPid;
+    
+    if(altura==treeHeight)
+    {
+        BTLeafNode sibNode;
+        
+        currLeaf.read(id_pagina,pf);
+
+        
+        currRegister=currLeaf.insert(llave,id_record);
+        if(!currRegister)
+        {
+            
+            if(treeHeight==1)
+                memcpy(currLeaf.getBuffer()+PageFile::PAGE_SIZE-sizeof(int),&treeHeight,sizeof(int));
+            currLeaf.write(id_pagina,pf);
+            return currRegister;
+        }
+        
+         if(treeHeight==1){
+            int tempnum=0; 
+            memcpy(currLeaf.getBuffer()+PageFile::PAGE_SIZE-sizeof(int),&tempnum,sizeof(int));
+            }
+        currRegister=currLeaf.insertAndSplit(llave,id_record,sibNode,sibKey);
+
+        
+        if(currRegister)
+            return currRegister;
+
+        sibPid=pf.endPid();
+
+        currLeaf.setNextNodePtr(sibPid);
+       
+        currLeaf.write(id_pagina,pf);
+
+        
+        sibNode.write(sibPid,pf);
+
+        
+        pllave=sibKey;
+        p_id_pagina=sibPid;
+        
+        
+        return 1000;
+
+    }
+    else
+    {
+        BTNonLeafNode sibNode;
+        
+        nonLeaf.read(id_pagina,pf);
+
+        currRegister=nonLeaf.locateChildPtr(llave,nextPid);
+
+        
+        if(currRegister)
+            return currRegister;
+
+        currRegister=insertarRecursivo(llave,id_record,altura+1,nextPid,pllave,p_id_pagina);
+
+        if(currRegister && currRegister!=1000)
+            return currRegister;
+
+        if(currRegister==1000)
+        {
+
+            currRegister=nonLeaf.insert(pllave,p_id_pagina);
+            if(!currRegister)
+            {
+                if(id_pagina==0)
+                    memcpy(nonLeaf.getBuffer()+PageFile::PAGE_SIZE-sizeof(int),&treeHeight,sizeof(int));
+                nonLeaf.write(id_pagina,pf);
+                return 0;
+            }
+            else
+            {
+                nonLeaf.insertAndSplit(pllave,p_id_pagina,sibNode,sibKey);
+                sibPid=pf.endPid();
+                
+                sibNode.write(sibPid,pf);
+                nonLeaf.write(id_pagina,pf);
+
+                
+                pllave=sibKey;
+                p_id_pagina=sibPid;
+
+                return 1000;
+            }
+        }
+    
+        
+        return currRegister;
+    }
 
 }
