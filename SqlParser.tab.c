@@ -953,3 +953,483 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
         *yymsg_alloc = YYSTACK_ALLOC_MAXIMUM;
       return 1;
     }
+ {
+    char *yyp = *yymsg;
+    int yyi = 0;
+    while ((*yyp = *yyformat) != '\0')
+      if (*yyp == '%' && yyformat[1] == 's' && yyi < yycount)
+        {
+          yyp += yytnamerr (yyp, yyarg[yyi++]);
+          yyformat += 2;
+        }
+      else
+        {
+          yyp++;
+          yyformat++;
+        }
+  }
+  return 0;
+}
+#endif /* YYERROR_VERBOSE */
+
+/*-----------------------------------------------.
+| Release the memory associated to this symbol.  |
+`-----------------------------------------------*/
+
+static void
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep)
+{
+  YYUSE (yyvaluep);
+  if (!yymsg)
+    yymsg = "Deleting";
+  YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
+
+  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
+  YYUSE (yytype);
+  YY_IGNORE_MAYBE_UNINITIALIZED_END
+}
+
+
+
+
+/* The lookahead symbol.  */
+int yychar;
+
+/* The semantic value of the lookahead symbol.  */
+YYSTYPE yylval;
+/* Number of syntax errors so far.  */
+int yynerrs;
+
+
+/*----------.
+| yyparse.  |
+`----------*/
+
+int
+yyparse (void)
+{
+    int yystate;
+    /* Number of tokens to shift before error messages enabled.  */
+    int yyerrstatus;
+
+    /* The stacks and their tools:
+       'yyss': related to states.
+       'yyvs': related to semantic values.
+
+       Refer to the stacks through separate pointers, to allow yyoverflow
+       to reallocate them elsewhere.  */
+
+    /* The state stack.  */
+    yytype_int16 yyssa[YYINITDEPTH];
+    yytype_int16 *yyss;
+    yytype_int16 *yyssp;
+
+    /* The semantic value stack.  */
+    YYSTYPE yyvsa[YYINITDEPTH];
+    YYSTYPE *yyvs;
+    YYSTYPE *yyvsp;
+
+    YYSIZE_T yystacksize;
+
+  int yyn;
+  int yyresult;
+  /* Lookahead token as an internal (translated) token number.  */
+  int yytoken = 0;
+  /* The variables used to return semantic value and location from the
+     action routines.  */
+  YYSTYPE yyval;
+
+#if YYERROR_VERBOSE
+  /* Buffer for error messages, and its allocated size.  */
+  char yymsgbuf[128];
+  char *yymsg = yymsgbuf;
+  YYSIZE_T yymsg_alloc = sizeof yymsgbuf;
+#endif
+
+#define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
+
+  /* The number of symbols on the RHS of the reduced rule.
+     Keep to zero when no symbol should be popped.  */
+  int yylen = 0;
+
+  yyssp = yyss = yyssa;
+  yyvsp = yyvs = yyvsa;
+  yystacksize = YYINITDEPTH;
+
+  YYDPRINTF ((stderr, "Starting parse\n"));
+
+  yystate = 0;
+  yyerrstatus = 0;
+  yynerrs = 0;
+  yychar = YYEMPTY; /* Cause a token to be read.  */
+  goto yysetstate;
+
+/*------------------------------------------------------------.
+| yynewstate -- Push a new state, which is found in yystate.  |
+`------------------------------------------------------------*/
+ yynewstate:
+  /* In all cases, when you get here, the value and location stacks
+     have just been pushed.  So pushing a state here evens the stacks.  */
+  yyssp++;
+
+ yysetstate:
+  *yyssp = yystate;
+
+  if (yyss + yystacksize - 1 <= yyssp)
+    {
+      /* Get the current used size of the three stacks, in elements.  */
+      YYSIZE_T yysize = yyssp - yyss + 1;
+
+#ifdef yyoverflow
+      {
+        /* Give user a chance to reallocate the stack.  Use copies of
+           these so that the &'s don't force the real ones into
+           memory.  */
+        YYSTYPE *yyvs1 = yyvs;
+        yytype_int16 *yyss1 = yyss;
+
+        /* Each stack pointer address is followed by the size of the
+           data in use in that stack, in bytes.  This used to be a
+           conditional around just the two extra args, but that might
+           be undefined if yyoverflow is a macro.  */
+        yyoverflow (YY_("memory exhausted"),
+                    &yyss1, yysize * sizeof (*yyssp),
+                    &yyvs1, yysize * sizeof (*yyvsp),
+                    &yystacksize);
+
+        yyss = yyss1;
+        yyvs = yyvs1;
+      }
+#else /* no yyoverflow */
+# ifndef YYSTACK_RELOCATE
+      goto yyexhaustedlab;
+# else
+      /* Extend the stack our own way.  */
+      if (YYMAXDEPTH <= yystacksize)
+        goto yyexhaustedlab;
+      yystacksize *= 2;
+      if (YYMAXDEPTH < yystacksize)
+        yystacksize = YYMAXDEPTH;
+
+      {
+        yytype_int16 *yyss1 = yyss;
+        union yyalloc *yyptr =
+          (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
+        if (! yyptr)
+          goto yyexhaustedlab;
+        YYSTACK_RELOCATE (yyss_alloc, yyss);
+        YYSTACK_RELOCATE (yyvs_alloc, yyvs);
+#  undef YYSTACK_RELOCATE
+        if (yyss1 != yyssa)
+          YYSTACK_FREE (yyss1);
+      }
+# endif
+#endif /* no yyoverflow */
+
+      yyssp = yyss + yysize - 1;
+      yyvsp = yyvs + yysize - 1;
+
+      YYDPRINTF ((stderr, "Stack size increased to %lu\n",
+                  (unsigned long int) yystacksize));
+
+      if (yyss + yystacksize - 1 <= yyssp)
+        YYABORT;
+    }
+
+  YYDPRINTF ((stderr, "Entering state %d\n", yystate));
+
+  if (yystate == YYFINAL)
+    YYACCEPT;
+
+  goto yybackup;
+
+/*-----------.
+| yybackup.  |
+`-----------*/
+yybackup:
+
+  /* Do appropriate processing given the current state.  Read a
+     lookahead token if we need one and don't already have one.  */
+
+  /* First try to decide what to do without reference to lookahead token.  */
+  yyn = yypact[yystate];
+  if (yypact_value_is_default (yyn))
+    goto yydefault;
+
+  /* Not known => get a lookahead token if don't already have one.  */
+
+  /* YYCHAR is either YYEMPTY or YYEOF or a valid lookahead symbol.  */
+  if (yychar == YYEMPTY)
+    {
+      YYDPRINTF ((stderr, "Reading a token: "));
+      yychar = yylex ();
+    }
+
+  if (yychar <= YYEOF)
+    {
+      yychar = yytoken = YYEOF;
+      YYDPRINTF ((stderr, "Now at end of input.\n"));
+    }
+  else
+    {
+      yytoken = YYTRANSLATE (yychar);
+      YY_SYMBOL_PRINT ("Next token is", yytoken, &yylval, &yylloc);
+    }
+
+  /* If the proper action on seeing token YYTOKEN is to reduce or to
+     detect an error, take that action.  */
+  yyn += yytoken;
+  if (yyn < 0 || YYLAST < yyn || yycheck[yyn] != yytoken)
+    goto yydefault;
+  yyn = yytable[yyn];
+  if (yyn <= 0)
+    {
+      if (yytable_value_is_error (yyn))
+        goto yyerrlab;
+      yyn = -yyn;
+      goto yyreduce;
+    }
+
+  /* Count tokens shifted since error; after three, turn off error
+     status.  */
+  if (yyerrstatus)
+    yyerrstatus--;
+
+  /* Shift the lookahead token.  */
+  YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
+
+  /* Discard the shifted token.  */
+  yychar = YYEMPTY;
+
+  yystate = yyn;
+  YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
+  *++yyvsp = yylval;
+  YY_IGNORE_MAYBE_UNINITIALIZED_END
+
+  goto yynewstate;
+
+
+/*-----------------------------------------------------------.
+| yydefault -- do the default action for the current state.  |
+`-----------------------------------------------------------*/
+yydefault:
+  yyn = yydefact[yystate];
+  if (yyn == 0)
+    goto yyerrlab;
+  goto yyreduce;
+
+
+/*-----------------------------.
+| yyreduce -- Do a reduction.  |
+`-----------------------------*/
+yyreduce:
+  /* yyn is the number of a rule to reduce with.  */
+  yylen = yyr2[yyn];
+
+  /* If YYLEN is nonzero, implement the default value of the action:
+     '$$ = $1'.
+
+     Otherwise, the following line sets YYVAL to garbage.
+     This behavior is undocumented and Bison
+     users should not rely upon it.  Assigning to YYVAL
+     unconditionally makes the parser a bit smaller, and it avoids a
+     GCC warning that YYVAL may be used uninitialized.  */
+  yyval = yyvsp[1-yylen];
+
+
+  YY_REDUCE_PRINT (yyn);
+  switch (yyn)
+    {
+        case 4:
+#line 57 "SqlParser.y" /* yacc.c:1646  */
+    { fprintf(stdout, "Bruinbase> "); }
+#line 1294 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 5:
+#line 58 "SqlParser.y" /* yacc.c:1646  */
+    { fprintf(stdout, "Bruinbase> "); }
+#line 1300 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 7:
+#line 60 "SqlParser.y" /* yacc.c:1646  */
+    { fprintf(stdout, "Bruinbase> "); }
+#line 1306 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 8:
+#line 61 "SqlParser.y" /* yacc.c:1646  */
+    { fprintf(stdout, "Bruinbase> "); }
+#line 1312 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 9:
+#line 65 "SqlParser.y" /* yacc.c:1646  */
+    { return 0; }
+#line 1318 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 10:
+#line 69 "SqlParser.y" /* yacc.c:1646  */
+    { 
+    SqlEngine::load(std::string((yyvsp[-3].string)), std::string((yyvsp[-1].string)), false); 
+    free((yyvsp[-3].string));
+    free((yyvsp[-1].string));
+  }
+#line 1328 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 11:
+#line 74 "SqlParser.y" /* yacc.c:1646  */
+    { 
+    SqlEngine::load(std::string((yyvsp[-5].string)), std::string((yyvsp[-3].string)), true); 
+    free((yyvsp[-5].string));
+    free((yyvsp[-3].string));
+  }
+#line 1338 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 12:
+#line 82 "SqlParser.y" /* yacc.c:1646  */
+    {
+            std::vector<SelCond> conds;
+    runSelect((yyvsp[-3].integer), (yyvsp[-1].string), conds);
+    free((yyvsp[-1].string));
+  }
+#line 1348 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 13:
+#line 87 "SqlParser.y" /* yacc.c:1646  */
+    {
+          runSelect((yyvsp[-5].integer), (yyvsp[-3].string), *(yyvsp[-1].conds));
+      free((yyvsp[-3].string));
+      for (unsigned i = 0; i < (yyvsp[-1].conds)->size(); i++) {
+        free((*(yyvsp[-1].conds))[i].value);
+    }
+      delete (yyvsp[-1].conds);
+  }
+#line 1361 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 14:
+#line 98 "SqlParser.y" /* yacc.c:1646  */
+    {
+    std::vector<SelCond>* v = new std::vector<SelCond>;
+    v->push_back(*(yyvsp[0].cond));
+    (yyval.conds) = v;
+          delete (yyvsp[0].cond);
+  }
+#line 1372 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 15:
+#line 104 "SqlParser.y" /* yacc.c:1646  */
+    {
+    (yyvsp[-2].conds)->push_back(*(yyvsp[0].cond));
+    (yyval.conds) = (yyvsp[-2].conds);
+          delete (yyvsp[0].cond);
+  }
+#line 1382 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 16:
+#line 112 "SqlParser.y" /* yacc.c:1646  */
+    { 
+    SelCond* c = new SelCond;
+    c->attr = (yyvsp[-2].integer);
+    c->comp = static_cast<SelCond::Comparator>((yyvsp[-1].integer));
+    c->value = (yyvsp[0].string);
+    (yyval.cond) = c;
+        }
+#line 1394 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 17:
+#line 122 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = (yyvsp[0].integer); }
+#line 1400 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 18:
+#line 123 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = 3; }
+#line 1406 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 19:
+#line 124 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = 4; }
+#line 1412 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 20:
+#line 128 "SqlParser.y" /* yacc.c:1646  */
+    { 
+    if (strcasecmp((yyvsp[0].string), "key") == 0) (yyval.integer)=1;
+    else if (strcasecmp((yyvsp[0].string), "value") == 0) (yyval.integer)=2;
+    else sqlerror("wrong attribute name. neither key or value");
+    free((yyvsp[0].string));
+  }
+#line 1423 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 21:
+#line 136 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.string) = (yyvsp[0].string); }
+#line 1429 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 22:
+#line 137 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.string) = (yyvsp[0].string); }
+#line 1435 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 23:
+#line 141 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.string) = (yyvsp[0].string); }
+#line 1441 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 24:
+#line 145 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = SelCond::EQ; }
+#line 1447 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 25:
+#line 146 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = SelCond::NE; }
+#line 1453 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 26:
+#line 147 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = SelCond::LT; }
+#line 1459 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 27:
+#line 148 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = SelCond::GT; }
+#line 1465 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 28:
+#line 149 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = SelCond::LE; }
+#line 1471 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 29:
+#line 150 "SqlParser.y" /* yacc.c:1646  */
+    { (yyval.integer) = SelCond::GE; }
+#line 1477 "SqlParser.tab.c" /* yacc.c:1646  */
+    break;
+
+
+#line 1481 "SqlParser.tab.c" /* yacc.c:1646  */
+      default: break;
+    }
