@@ -1,3 +1,26 @@
+#ifndef RECORDFILE_H
+#define RECORDFILE_H
+
+#include <string>
+#include "PageFile.h"
+
+typedef struct {
+  PageId  pid;  
+  int     sid;  
+} RecordId;
+
+
+
+RecordId& operator++ (RecordId& rid);
+RecordId  operator++ (RecordId& rid, int);
+
+bool operator> (const RecordId& r1, const RecordId& r2);
+bool operator< (const RecordId& r1, const RecordId& r2);
+bool operator>= (const RecordId& r1, const RecordId& r2);
+bool operator<= (const RecordId& r1, const RecordId& r2);
+bool operator== (const RecordId& r1, const RecordId& r2);
+bool operator!= (const RecordId& r1, const RecordId& r2);
+//
 class RecordFile {
  public:
 

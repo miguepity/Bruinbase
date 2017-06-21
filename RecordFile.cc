@@ -4,6 +4,80 @@
 
 using std::string;
 
+//
+
+static char* slotPtr(char* page, int n);
+
+static void readSlot(const char* page, int n, int& key, std::string& value);
+
+static void writeSlot(char* page, int n, int key, const std::string& value);
+
+static int getRecordCount(const char* page);
+
+static void setRecordCount(char* page, int count);
+
+RecordId operator++ (RecordId& rid, int)
+{
+  RecordId prid(rid);
+
+  if (++rid.sid >= RecordFile::RECORDS_PER_PAGE) {
+    rid.pid++;
+    rid.sid = 0;
+  }
+
+  return prid;
+}
+
+RecordId& operator++ (RecordId& rid)
+{
+  if (++rid.sid >= RecordFile::RECORDS_PER_PAGE) {
+    rid.pid++;
+    rid.sid = 0;
+  } 
+
+  return rid;
+}
+
+bool operator < (const RecordId& r1, const RecordId& r2)
+{
+  if (r1.pid < r2.pid) return true;
+  if (r1.pid > r2.pid) return false;
+  return (r1.sid < r2.sid);
+}
+
+bool operator > (const RecordId& r1, const RecordId& r2)
+{
+  if (r1.pid > r2.pid) return true;
+  if (r1.pid < r2.pid) return false;
+  return (r1.sid > r2.sid);
+}
+
+bool operator <= (const RecordId& r1, const RecordId& r2)
+{
+  if (r1.pid < r2.pid) return true;
+  if (r1.pid > r2.pid) return false;
+  return (r1.sid <= r2.sid);
+}
+
+bool operator >= (const RecordId& r1, const RecordId& r2)
+{
+  if (r1.pid > r2.pid) return true;
+  if (r1.pid < r2.pid) return false;
+  return (r1.sid >= r2.sid);
+}
+
+bool operator == (const RecordId& r1, const RecordId& r2)
+{
+  return ((r1.pid == r2.pid) && (r1.sid == r2.sid));
+}
+
+bool operator != (const RecordId& r1, const RecordId& r2)
+{
+  return ((r1.pid != r2.pid) || (r1.sid != r2.sid));
+}
+
+//
+
 RecordFile::RecordFile()
 {
   erid.pid = 0;
