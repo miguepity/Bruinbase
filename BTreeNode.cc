@@ -59,3 +59,57 @@ int BTLeafNode::getMaxLlaves(){
     int parejas_maximas=floor((PageFile::PAGE_SIZE-sizeof(PageId))/(L_PAIR_SIZE));
     return parejas_maximas;
 }
+
+RC BTLeafNode::insertAndSplit(int key, const RecordId& rid, BTLeafNode& sibling, int& siblingKey){ 
+    int keyCount=getKeyCount();
+
+    if(getMaxLlaves()>keyCount+1)
+        return RC_INVALID_ATTRIBUTE;
+
+    if(sibling.getKeyCount()!=0)
+        return RC_INVALID_ATTRIBUTE;
+
+    
+    int insertIndex;
+    localizar(key,insertIndex);
+
+    
+    char* buffer2=(char*)malloc(2*(PageFile::PAGE_SIZE));
+    memset(buffer2, '\0', (2*PageFile::PAGE_SIZE));
+
+    
+    memcpy(buffer2,buffer,insertIndex);
+
+    
+    memcpy(buffer2+insertIndex,&key,sizeof(int));
+    memcpy(buffer2+insertIndex+sizeof(int),&rid,sizeof(RecordId));
+    
+    
+    memcpy(buffer2+insertIndex+sizeof(int)+sizeof(RecordId),buffer+insertIndex,(PageFile::PAGE_SIZE-insertIndex));
+
+    
+    double dKey=keyCount+1;
+    double first=ceil((dKey)/2);
+
+    int splitIndex=first*L_PAIR_SIZE;
+
+    
+    memcpy(buffer,buffer2,splitIndex);
+
+    
+    memcpy(sibling.buffer,buffer2+splitIndex,PageFile::PAGE_SIZE+L_PAIR_SIZE-splitIndex);
+
+    
+    memset(buffer+splitIndex,'\0',PageFile::PAGE_SIZE-splitIndex);
+
+    
+    memset(sibling.buffer+(PageFile::PAGE_SIZE+L_PAIR_SIZE-splitIndex),'\0',splitIndex-L_PAIR_SIZE);
+
+    
+    free(buffer2);
+
+    
+    memcpy(&siblingKey,sibling.buffer,sizeof(int));
+    
+    return 0; 
+}
