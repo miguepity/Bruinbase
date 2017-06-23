@@ -153,3 +153,222 @@ RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid){
 
     return 0;
 }
+
+PageId BTLeafNode::getNextNodePtr(){ 
+    PageId pid;
+    memcpy(&pid, buffer+(getKeyCount()*L_PAIR_SIZE),sizeof(PageId));
+    return pid;
+}
+
+RC BTLeafNode::setNextNodePtr(PageId pid){
+    if(pid<0)
+        return RC_INVALID_PID;
+    memcpy(buffer+(getKeyCount()*L_PAIR_SIZE),&pid,sizeof(PageId));
+    return 0;
+}
+
+void BTLeafNode::print(){
+    char* temp=buffer;
+    for(int i=0;i<getKeyCount();i++){
+        int tempInt;
+        memcpy(&tempInt,temp,sizeof(int));
+        cout<<"key: "<<tempInt<<endl;
+        temp+=L_PAIR_SIZE;
+    }
+}
+
+
+BTNonLeafNode::BTNonLeafNode(){
+    
+    memset(buffer, '\0', PageFile::PAGE_SIZE);
+    memset(buffer,0,sizeof(int));
+}
+
+
+RC BTNonLeafNode::read(PageId pid, const PageFile& pf){ 
+    return pf.read(pid,buffer);
+}
+    
+
+RC BTNonLeafNode::write(PageId pid, PageFile& pf){ 
+    return pf.write(pid,buffer);
+}
+
+
+int BTNonLeafNode::getKeyCount(){ 
+    int numKeys;
+    memcpy(&numKeys,buffer,sizeof(int));
+    return numKeys;
+}
+
+
+int BTNonLeafNode::getMaxLlaves(){
+    
+    int parejas_maximas=floor((PageFile::PAGE_SIZE-sizeof(int)-sizeof(PageId))/(NL_PAIR_SIZE));
+    return parejas_maximas-1;
+}
+
+
+RC BTNonLeafNode::insert(int key, PageId pid){ 
+    int numKeys=getKeyCount();
+    
+    if(numKeys+1>getMaxLlaves())
+        return RC_NODE_FULL;
+
+    
+    int insertIndex;
+    localizar(key,insertIndex);
+
+    
+    char* buffer2=(char*)malloc(PageFile::PAGE_SIZE);
+    memset(buffer2, '\0', PageFile::PAGE_SIZE);
+
+    
+    memcpy(buffer2,buffer,insertIndex);
+
+    
+    memcpy(buffer2+insertIndex,&key,sizeof(int));
+    memcpy(buffer2+insertIndex+sizeof(int),&pid,sizeof(PageId));
+
+    
+    memcpy(buffer2+insertIndex+sizeof(int)+sizeof(PageId),buffer+insertIndex,(PageFile::PAGE_SIZE-insertIndex-sizeof(int)-sizeof(PageId)));
+
+    
+    memcpy(buffer,buffer2,PageFile::PAGE_SIZE);
+
+    
+    free(buffer2);
+
+    
+    numKeys++;
+    memcpy(buffer,&numKeys,sizeof(int));
+    
+    
+    return 0;
+}
+
+RC BTNonLeafNode::insertAndSplit(int key, PageId pid, BTNonLeafNode& sibling, int& midKey){ 
+
+    int keyCount=getKeyCount();
+
+    if(getMaxLlaves()>keyCount+1)
+        return RC_INVALID_ATTRIBUTE;
+
+    
+    if (sibling.getKeyCount()!=0)
+        return RC_INVALID_ATTRIBUTE;
+
+    
+    int insertIndex;
+    localizar(key,insertIndex);
+
+    
+    char* buffer2=(char*)malloc(2*(PageFile::PAGE_SIZE));
+    memset(buffer2, '\0', (2*PageFile::PAGE_SIZE));
+
+    
+    memcpy(buffer2,buffer,insertIndex);
+
+    
+    memcpy(buffer2+insertIndex,&key,sizeof(int));
+    memcpy(buffer2+insertIndex+sizeof(int),&pid,sizeof(PageId));
+    
+    
+    memcpy(buffer2+insertIndex+sizeof(int)+sizeof(PageId),buffer+insertIndex,(PageFile::PAGE_SIZE-insertIndex));
+ 
+    
+    double dKey=keyCount;
+
+    double first=ceil((dKey+1)/2);
+
+    
+    int splitIndex=(first*NL_PAIR_SIZE)+sizeof(int);
+
+    
+    memcpy(buffer,buffer2,splitIndex);
+
+    
+    memcpy(sibling.buffer+sizeof(int),buffer2+splitIndex,PageFile::PAGE_SIZE+NL_PAIR_SIZE-splitIndex);
+    
+   
+    memset(buffer+splitIndex,'\0',PageFile::PAGE_SIZE-splitIndex);
+
+    
+    memset(sibling.buffer+(PageFile::PAGE_SIZE+NL_PAIR_SIZE-splitIndex+sizeof(PageId)),'\0',splitIndex-NL_PAIR_SIZE-sizeof(PageId));
+
+    
+    int siblingNumKey=keyCount+1-first;
+    memcpy(sibling.buffer,&siblingNumKey,sizeof(int));
+
+    
+    int newKey=first-1;
+    memcpy(buffer,&newKey,sizeof(int));
+
+    
+    free(buffer2);
+
+    
+    int midKeyPos=sizeof(int)+((first-1)*NL_PAIR_SIZE)+sizeof(PageId);
+    memcpy(&midKey,buffer+midKeyPos,sizeof(int));
+
+    
+    memset(buffer+midKeyPos,'\0',sizeof(int));
+
+    return 0;
+}
+
+
+RC BTNonLeafNode::localizar(int buscarLlave, int& codigo){ 
+    
+    int i;
+
+    for(i=0;i<getKeyCount();i++){
+        int llave_actual;
+        
+        memcpy(&llave_actual,buffer+(i*NL_PAIR_SIZE)+sizeof(PageId)+sizeof(int),sizeof(int));
+        if(buscarLlave==llave_actual){
+            codigo=(i*NL_PAIR_SIZE)+sizeof(PageId)+sizeof(int);
+            return 0;
+        }else if(buscarLlave<llave_actual){
+            codigo=(i*NL_PAIR_SIZE)+sizeof(PageId)+sizeof(int);
+            return RC_NO_SUCH_RECORD;
+        }
+    }
+    
+    if(i<getMaxLlaves()){
+        codigo=(i*NL_PAIR_SIZE)+sizeof(PageId)+sizeof(int);
+        return RC_NO_SUCH_RECORD;
+    }
+
+    
+    codigo=((i)*NL_PAIR_SIZE)+sizeof(PageId)+sizeof(int);
+
+    return RC_NO_SUCH_RECORD; 
+}
+
+RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid){ 
+    
+    int tmpKey;
+    PageId tmpPid;
+    int i;
+
+    int numKeys=getKeyCount();
+    for(i=0;i<numKeys;i++){
+        memcpy(&tmpKey,buffer+(i*NL_PAIR_SIZE)+sizeof(PageId)+sizeof(int),sizeof(int));
+        
+        if(searchKey<tmpKey){
+            memcpy(&tmpPid,buffer+(i*NL_PAIR_SIZE)+sizeof(int),sizeof(PageId));
+            pid=tmpPid;
+            return 0;
+        }
+        
+        if(i==numKeys-1){
+            memcpy(&tmpPid,buffer+((i+1)*NL_PAIR_SIZE)+sizeof(int),sizeof(PageId));
+            pid=tmpPid;
+            return 0;
+        }
+    }
+
+
+    return RC_NO_SUCH_RECORD;
+}
