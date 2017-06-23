@@ -372,3 +372,33 @@ RC BTNonLeafNode::locateChildPtr(int searchKey, PageId& pid){
 
     return RC_NO_SUCH_RECORD;
 }
+
+RC BTNonLeafNode::initializeRoot(PageId pid1, int key, PageId pid2){ 
+    
+    memset(buffer, '\0', PageFile::PAGE_SIZE);
+
+    
+    int numKeys=1;
+    memcpy(buffer,&numKeys,sizeof(int));
+
+    
+    memcpy(buffer+sizeof(int),&pid1,sizeof(PageId));
+    memcpy(buffer+sizeof(int)+sizeof(PageId),&key,sizeof(int));
+    memcpy(buffer+sizeof(int)+sizeof(PageId)+sizeof(int),&pid2,sizeof(PageId));
+
+    return 0;
+}
+
+void BTNonLeafNode::print(){
+    return;
+    char* temp=buffer;
+    int keyss=getKeyCount();
+    for(int i=0;i<1024;i+=sizeof(int))
+    {
+        int tempInt;
+        memcpy(&tempInt,temp,sizeof(int));
+        cout<<tempInt<<" ";
+        temp+=sizeof(int);
+    }
+    cout<<"termino"<<endl;
+}
