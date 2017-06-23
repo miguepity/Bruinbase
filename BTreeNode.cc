@@ -113,3 +113,43 @@ RC BTLeafNode::insertAndSplit(int key, const RecordId& rid, BTLeafNode& sibling,
     
     return 0; 
 }
+
+RC BTLeafNode::localizar(int buscarLlave, int& codigo){ 
+    int i=0;
+    int cantidadLlaves=getKeyCount();
+    if(cantidadLlaves==0){
+        codigo=i*L_PAIR_SIZE;
+        return RC_NO_SUCH_RECORD;
+    }
+
+    for(i=0;i<cantidadLlaves;i++){
+        int llave_actual;
+        memcpy(&llave_actual,buffer+(i*L_PAIR_SIZE),sizeof(int));
+       
+        if(buscarLlave==llave_actual){
+            codigo=i*L_PAIR_SIZE;
+            return 0;
+        }else if(buscarLlave<llave_actual){
+            codigo=i*L_PAIR_SIZE;
+            return RC_NO_SUCH_RECORD;
+        }
+    }
+
+
+    codigo=i*L_PAIR_SIZE;
+    
+    return RC_NO_SUCH_RECORD; 
+}
+
+RC BTLeafNode::readEntry(int eid, int& key, RecordId& rid){ 
+    if(eid<0)
+        return RC_NO_SUCH_RECORD;
+    if(eid>=(getKeyCount()*L_PAIR_SIZE))
+        return RC_NO_SUCH_RECORD;
+
+    int shift=eid;
+    memcpy(&key,buffer+shift,sizeof(int));
+    memcpy(&rid,buffer+shift+sizeof(int),sizeof(RecordId));
+
+    return 0;
+}
